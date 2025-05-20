@@ -1,8 +1,12 @@
 // screens/Home.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
+import { Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 48) / 2; // 2 colunas, 16px de padding geral + 16px de margem
 
 export default function Home() {
   const [games, setGames] = useState([]);
@@ -36,18 +40,28 @@ export default function Home() {
         <Text style={styles.emptyText}>Nenhum jogo encontrado.</Text>
       ) : (
         <FlatList
-          data={games}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.gameTitle}>{item.title}</Text>
-              <Text style={styles.gameDetails}>
-                {item.year} • {Array.isArray(item.genre) ? item.genre.join(", ") : item.genre}
-              </Text>
-              <Text style={styles.description}>{item.description}</Text>
-            </View>
-          )}
-        />
+            data={games}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.grid}
+            renderItem={({ item }) => (
+              <View style={styles.card}>
+                {item.imageUrl && (
+                  <Image 
+                    source={{ uri: item.imageUrl }}
+                    style={styles.image}
+                    resizeMode="cover"
+                  />
+                )}
+                <Text style={styles.gameTitle} numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text style={styles.gameDetails} numberOfLines={1}>
+                  {item.year}
+                </Text>
+              </View>
+            )}
+          />
       )}
     </View>
   );
@@ -71,17 +85,34 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+
+  grid: {
+    paddingBottom: 24,
+    paddingHorizontal: 16,
+  },
   card: {
+    width: CARD_WIDTH,
     backgroundColor: '#1c1c1c',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: 20,
+    marginBottom: 32,
+    marginHorizontal: 8,
+    overflow: 'hidden',
+    alignItems: 'center',
   },
+
+  image: {
+    width: '50%',
+    aspectRatio: 2 / 3, // capa padrão (ex: 200x300)
+    borderRadius: 8,
+  },
+
   gameTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
+  fontSize: 14,
+  color: '#fff',
+  marginTop: 6,
+  marginBottom: 4,
+  textAlign: 'center',
+},
   gameDetails: {
     fontSize: 14,
     color: '#aaa',
